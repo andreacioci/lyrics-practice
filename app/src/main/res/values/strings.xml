@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Weather Widget</string>
+    <string name="widget_label">Previsioni orarie</string>
+    <string name="widget_description">Mostra le previsioni meteo per le prossime 5 ore</string>
+</resources>

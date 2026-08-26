@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Layout XML minimo richiesto da AppWidgetProviderInfo.initialLayout.
+     Glance sostituisce questo contenuto con la Composable non appena disponibile;
+     serve solo come placeholder mostrato per una frazione di secondo al primo add. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white">
+
+    <ProgressBar
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center" />
+
+</FrameLayout>
