@@ -68,7 +68,6 @@ dependencies {
     implementation(libs.androidx.work.runtime.ktx)
 
     implementation(libs.retrofit.core)
-    implementation(libs.retrofit.kotlinx.serialization.converter)
     implementation(libs.okhttp.core)
     implementation(libs.okhttp.logging.interceptor)
     implementation(libs.kotlinx.serialization.json)
