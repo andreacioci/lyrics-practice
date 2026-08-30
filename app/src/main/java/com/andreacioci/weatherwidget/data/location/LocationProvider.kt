@@ -12,7 +12,6 @@ import com.andreacioci.weatherwidget.data.local.SettingsDataStore
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.resume
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
@@ -83,7 +82,7 @@ class LocationProvider(
     private suspend fun geocodeAsync(geocoder: Geocoder, latitude: Double, longitude: Double): List<Address>? =
         suspendCancellableCoroutine { continuation ->
             geocoder.getFromLocation(latitude, longitude, 1) { addresses ->
-                continuation.resume(addresses)
+                continuation.resume(addresses, onCancellation = null)
             }
         }
 
