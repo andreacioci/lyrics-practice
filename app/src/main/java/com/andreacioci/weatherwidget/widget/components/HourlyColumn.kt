@@ -22,7 +22,7 @@ private val hourFormatter = DateTimeFormatter.ofPattern("HH")
 @Composable
 fun HourlyColumn(
     forecast: HourlyForecast,
-    iconSize: Dp = 26.dp,
+    iconSize: Dp = 38.dp,
     modifier: GlanceModifier = GlanceModifier,
 ) {
     Column(
