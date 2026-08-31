@@ -1,5 +1,12 @@
 package com.andreacioci.weatherwidget.ui.detail
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.os.PowerManager
+import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,14 +33,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.glance.appwidget.updateAll
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.andreacioci.weatherwidget.AppContainer
 import com.andreacioci.weatherwidget.data.model.WeatherSnapshot
 import com.andreacioci.weatherwidget.widget.WeatherWidget
 import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
 import kotlin.math.roundToInt
+
+private fun isIgnoringBatteryOptimizations(context: Context): Boolean {
+    val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+    return powerManager.isIgnoringBatteryOptimizations(context.packageName)
+}
 
 @Composable
 fun WeatherDetailScreen(
@@ -47,6 +63,24 @@ fun WeatherDetailScreen(
     var isLoading by remember { mutableStateOf(true) }
     var snapshot by remember { mutableStateOf<WeatherSnapshot?>(null) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    var isBatteryUnrestricted by remember { mutableStateOf(isIgnoringBatteryOptimizations(context)) }
+    val batteryOptimizationLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult(),
+    ) {
+        isBatteryUnrestricted = isIgnoringBatteryOptimizations(context)
+    }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                isBatteryUnrestricted = isIgnoringBatteryOptimizations(context)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     suspend fun refresh() {
         isLoading = true
@@ -90,6 +124,23 @@ fun WeatherDetailScreen(
             Text("Consenti l'accesso alla posizione per le previsioni automatiche, oppure imposta una città manuale nelle impostazioni.")
             Spacer(Modifier.height(8.dp))
             Button(onClick = onRequestPermission) { Text("Consenti localizzazione") }
+        }
+
+        if (!isBatteryUnrestricted) {
+            Spacer(Modifier.height(12.dp))
+            Text(
+                "Il sistema potrebbe sospendere l'aggiornamento automatico del widget in background. " +
+                    "Consenti l'esecuzione senza restrizioni di batteria per aggiornamenti più affidabili.",
+            )
+            Spacer(Modifier.height(8.dp))
+            Button(onClick = {
+                val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                    data = Uri.parse("package:${context.packageName}")
+                }
+                batteryOptimizationLauncher.launch(intent)
+            }) {
+                Text("Consenti aggiornamento in background")
+            }
         }
 
         Spacer(Modifier.height(16.dp))
